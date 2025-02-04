@@ -39,12 +39,12 @@ jobs:
 
       - name: Get Preview URL
         run: |
-          echo "Preview URL: http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website-${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com"
+          echo "Preview URL: http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com"
 
       - name: Post Preview Link on PR
         uses: thollander/actions-comment-pull-request@v2
         with:
-          message: "🚀 Preview your changes: [Live Link](http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website-${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com)"
+          message: "🚀 Preview your changes: [Live Link](http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com)"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   cleanup:
