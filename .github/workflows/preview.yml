@@ -2,13 +2,14 @@ name: Deploy PR Preview
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
 
 permissions:
   pull-requests: write
 
 jobs:
   preview-deploy:
+    if: github.event.action != 'closed' # Skip if PR is closed
     runs-on: ubuntu-latest
 
     steps:
@@ -36,24 +37,25 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PREVIEW_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_PREVIEW_REGION }}
           SOURCE_DIR: "build"
+          DEST_DIR: "pr-${{ github.event.pull_request.number }}/" # Unique folder for each PR
 
       - name: Get Preview URL
         run: |
-          echo "Preview URL: http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com"
+          echo "Preview URL: http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com/pr-${{ github.event.pull_request.number }}/"
 
       - name: Post Preview Link on PR
         uses: thollander/actions-comment-pull-request@v2
         with:
-          message: "🚀 Preview your changes: [Live Link](http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com)"
+          message: "🚀 Preview your changes: [Live Link](http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com/pr-${{ github.event.pull_request.number }}/)"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   cleanup:
+    if: github.event.pull_request.merged == true || github.event.pull_request.closed == true
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
     steps:
       - name: Remove PR Preview from S3
         run: |
-          aws s3 rm s3://${{ secrets.AWS_PREVIEW_BUCKET }} --recursive
+          aws s3 rm s3://${{ secrets.AWS_PREVIEW_BUCKET }}/pr-${{ github.event.pull_request.number }} --recursive
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PREVIEW_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PREVIEW_SECRET_ACCESS_KEY }}
