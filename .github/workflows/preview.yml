@@ -28,9 +28,8 @@ jobs:
         run: echo "REACT_APP_BASENAME=/pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
       - name: Build React App
-        run: npm run build
-        env:
-          REACT_APP_BASENAME: ${{ env.REACT_APP_BASENAME }}
+        run: |
+          REACT_APP_BASENAME="/pr-${{ github.event.pull_request.number }}" npm run build
 
       - name: Deploy to S3 Preview Bucket
         uses: jakejarvis/s3-sync-action@v0.5.1
