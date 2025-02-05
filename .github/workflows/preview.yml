@@ -24,8 +24,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Set PR Preview Path
+        run: echo "REACT_APP_BASENAME=/pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+
       - name: Build React App
         run: npm run build
+        env:
+          REACT_APP_BASENAME: ${{ env.REACT_APP_BASENAME }}
 
       - name: Deploy to S3 Preview Bucket
         uses: jakejarvis/s3-sync-action@v0.5.1
