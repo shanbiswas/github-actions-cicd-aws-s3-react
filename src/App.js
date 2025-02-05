@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import { BrowserRouter } from "react-router-dom";
 
@@ -7,10 +6,7 @@ function App() {
     <BrowserRouter basename={process.env.REACT_APP_BASENAME || "/"}>
       <div className="App">
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
+          <p>Hello React</p>
           <a
             className="App-link"
             href="https://reactjs.org"
