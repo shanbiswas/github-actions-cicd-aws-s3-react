@@ -2,14 +2,13 @@ name: Deploy PR Preview
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, closed]
+    types: [opened, synchronize, reopened]
 
 permissions:
   pull-requests: write
 
 jobs:
   preview-deploy:
-    if: github.event.action != 'closed' # Skip if PR is closed
     runs-on: ubuntu-latest
 
     steps:
@@ -24,12 +23,8 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Set PR Preview Path
-        run: echo "REACT_APP_BASENAME=/pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
-
       - name: Build React App
-        run: |
-          REACT_APP_BASENAME="/pr-${{ github.event.pull_request.number }}" npm run build
+        run: npm run build
 
       - name: Deploy to S3 Preview Bucket
         uses: jakejarvis/s3-sync-action@v0.5.1
@@ -41,25 +36,24 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PREVIEW_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.AWS_PREVIEW_REGION }}
           SOURCE_DIR: "build"
-          DEST_DIR: "pr-${{ github.event.pull_request.number }}/" # Unique folder for each PR
 
       - name: Get Preview URL
         run: |
-          echo "Preview URL: http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com/pr-${{ github.event.pull_request.number }}/"
+          echo "Preview URL: http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com"
 
       - name: Post Preview Link on PR
         uses: thollander/actions-comment-pull-request@v2
         with:
-          message: "🚀 Preview your changes: [Live Link](http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com/pr-${{ github.event.pull_request.number }}/)"
+          message: "🚀 Preview your changes: [Live Link](http://${{ secrets.AWS_PREVIEW_BUCKET }}.s3-website.${{ secrets.AWS_PREVIEW_REGION }}.amazonaws.com)"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   cleanup:
-    if: github.event.pull_request.merged == true || github.event.pull_request.closed == true
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
     steps:
       - name: Remove PR Preview from S3
         run: |
-          aws s3 rm s3://${{ secrets.AWS_PREVIEW_BUCKET }}/pr-${{ github.event.pull_request.number }} --recursive
+          aws s3 rm s3://${{ secrets.AWS_PREVIEW_BUCKET }} --recursive
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_PREVIEW_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_PREVIEW_SECRET_ACCESS_KEY }}
