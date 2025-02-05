@@ -4,7 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 
 function App() {
   return (
-    <BrowserRouter basename={process.env.REACT_APP_BASENAME}>
+    <BrowserRouter basename={process.env.REACT_APP_BASENAME || "/"}>
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
